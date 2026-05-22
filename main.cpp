@@ -1,6 +1,6 @@
 // Winter'24
 // Instructor: Diba Mirza
-// Student name: 
+// Student name: Chinmay Khaladkar
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -35,6 +35,7 @@ int main(int argc, char** argv){
     }
   
     // Create an object of a STL data-structure to store all the movies
+    MovieList movies;
 
     string line, movieName;
     double movieRating;
@@ -44,12 +45,15 @@ int main(int argc, char** argv){
             // to construct your Movie objects
             // cout << movieName << " has rating " << movieRating << endl;
             // insert elements into your data structure
+            addMovie(movies, movieName, movieRating);
     }
 
     movieFile.close();
 
     if (argc == 2){
             //print all the movies in ascending alphabetical order of movie names
+            sortMoviesByName(movies);
+            printMoviesAlphabetically(movies);
             return 0;
     }
 
