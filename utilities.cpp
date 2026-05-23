@@ -1,8 +1,6 @@
 #include "utilities.h"
 
 #include <algorithm>
-#include <iomanip>
-#include <iostream>
 
 bool compareMoviesByName(const std::pair<std::string, double>& left,
                          const std::pair<std::string, double>& right) {
@@ -18,10 +16,37 @@ void sortMoviesByName(MovieList& movies) {
   std::sort(movies.begin(), movies.end(), compareMoviesByName);
 }
 
-void printMoviesAlphabetically(const MovieList& movies) {
-  for (const auto& movie : movies) {
-    std::cout << movie.first << ", "
-              << std::fixed << std::setprecision(1) << movie.second
-              << std::endl;
+bool movieStartsWithPrefix(const std::pair<std::string, double>& movie,
+                           const std::string& prefix) {
+  if (prefix.length() > movie.first.length()) {
+    return false;
   }
+
+  return movie.first.substr(0, prefix.length()) == prefix;
+}
+
+MovieList findMoviesWithPrefix(const MovieList& movies, const std::string& prefix) {
+  MovieList matches;
+
+  for (const std::pair<std::string, double>& movie : movies) {
+    if (movieStartsWithPrefix(movie, prefix)) {
+      matches.push_back(movie);
+    }
+  }
+
+  sortMoviesByRatingThenName(matches);
+  return matches;
+}
+
+bool compareMoviesByRatingThenName(const std::pair<std::string, double>& left,
+                                   const std::pair<std::string, double>& right) {
+  if (left.second == right.second) {
+    return left.first < right.first;
+  }
+
+  return left.second > right.second;
+}
+
+void sortMoviesByRatingThenName(MovieList& movies) {
+  std::sort(movies.begin(), movies.end(), compareMoviesByRatingThenName);
 }

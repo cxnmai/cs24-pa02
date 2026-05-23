@@ -22,8 +22,8 @@ bool parseLine(string &line, string &movieName, double &movieRating);
 
 int main(int argc, char** argv){
     if (argc < 2){
-        cerr << "Not enough arguments provided (need at least 1 argument)." << endl;
-        cerr << "Usage: " << argv[ 0 ] << " moviesFilename prefixFilename " << endl;
+        cerr << "Not enough arguments provided (need at least 1 argument)." << '\n';
+        cerr << "Usage: " << argv[ 0 ] << " moviesFilename prefixFilename " << '\n';
         exit(1);
     }
 
@@ -43,7 +43,7 @@ int main(int argc, char** argv){
     while (getline (movieFile, line) && parseLine(line, movieName, movieRating)){
             // Use std::string movieName and double movieRating
             // to construct your Movie objects
-            // cout << movieName << " has rating " << movieRating << endl;
+            // cout << movieName << " has rating " << movieRating << '\n';
             // insert elements into your data structure
             addMovie(movies, movieName, movieRating);
     }
@@ -71,14 +71,16 @@ int main(int argc, char** argv){
         }
     }
 
-    //  For each prefix,
-    //  Find all movies that have that prefix and store them in an appropriate data structure
-    //  If no movie with that prefix exists print the following message
-    cout << "No movies found with prefix "<<"<replace with prefix>" << endl;
+    vector<MovieList> moviesByPrefix;
+    for (const string& prefix : prefixes) {
+        MovieList matches = findMoviesWithPrefix(movies, prefix);
+        printMoviesForPrefix(matches, prefix);
+        moviesByPrefix.push_back(matches);
+    }
 
-    //  For each prefix,
-    //  Print the highest rated movie with that prefix if it exists.
-    cout << "Best movie with prefix " << "<replace with prefix>" << " is: " << "replace with movie name" << " with rating " << std::fixed << std::setprecision(1) << "replace with movie rating" << endl;
+    for (int i = 0; i < prefixes.size(); i++) {
+        printBestMovieForPrefix(moviesByPrefix[i], prefixes[i]);
+    }
 
     return 0;
 }
