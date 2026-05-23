@@ -2,8 +2,7 @@
 
 #include <algorithm>
 
-bool compareMoviesByName(const std::pair<std::string, double>& left,
-                         const std::pair<std::string, double>& right) {
+bool compareMoviesByName(const Movie& left, const Movie& right) {
     return left.first < right.first;
 }
 
@@ -16,8 +15,7 @@ void sortMoviesByName(MovieList& movies) {
   std::sort(movies.begin(), movies.end(), compareMoviesByName);
 }
 
-bool movieStartsWithPrefix(const std::pair<std::string, double>& movie,
-                           const std::string& prefix) {
+bool movieStartsWithPrefix(const Movie& movie, const std::string& prefix) {
   if (prefix.length() > movie.first.length()) {
     return false;
   }
@@ -38,8 +36,7 @@ MovieList findMoviesWithPrefix(const MovieList& movies, const std::string& prefi
   return matches;
 }
 
-bool compareMoviesByRatingThenName(const std::pair<std::string, double>& left,
-                                   const std::pair<std::string, double>& right) {
+bool compareMoviesByRatingThenName(const Movie& left, const Movie& right) {
   if (left.second == right.second) {
     return left.first < right.first;
   }
@@ -49,4 +46,16 @@ bool compareMoviesByRatingThenName(const std::pair<std::string, double>& left,
 
 void sortMoviesByRatingThenName(MovieList& movies) {
   std::sort(movies.begin(), movies.end(), compareMoviesByRatingThenName);
+}
+
+bool compareMoviePointersByRatingThenName(const Movie* left, const Movie* right) {
+  if (left->second == right->second) {
+    return left->first < right->first;
+  }
+
+  return left->second > right->second;
+}
+
+void sortMoviePointersByRatingThenName(MoviePtrList& movies) {
+  std::sort(movies.begin(), movies.end(), compareMoviePointersByRatingThenName);
 }

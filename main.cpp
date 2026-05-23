@@ -6,6 +6,8 @@
 #include <string>
 #include <ctime>
 #include <vector>
+#include <array>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
 #include <limits.h>
@@ -20,7 +22,42 @@ using namespace std;
 
 bool parseLine(string &line, string &movieName, double &movieRating);
 
+constexpr int PREFIX_LENGTH = 3;
+constexpr int LETTERS = 26;
+constexpr int PREFIX_BUCKETS = LETTERS * LETTERS * LETTERS;
+
+int prefixIndex(const string& value) {
+    if (value.size() < PREFIX_LENGTH) {
+        return -1;
+    }
+
+    int index = 0;
+    for (int i = 0; i < PREFIX_LENGTH; ++i) {
+        const char ch = value[i];
+        if (ch < 'a' || ch > 'z') {
+            return -1;
+        }
+        index = index * LETTERS + (ch - 'a');
+    }
+    return index;
+}
+
+bool allThreeLetterPrefixes(const vector<string>& prefixes, vector<int>& prefixIndexes) {
+    prefixIndexes.reserve(prefixes.size());
+    for (const string& prefix : prefixes) {
+        const int index = prefixIndex(prefix);
+        if (prefix.size() != PREFIX_LENGTH || index < 0) {
+            return false;
+        }
+        prefixIndexes.push_back(index);
+    }
+    return true;
+}
+
 int main(int argc, char** argv){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
     if (argc < 2){
         cerr << "Not enough arguments provided (need at least 1 argument)." << '\n';
         cerr << "Usage: " << argv[ 0 ] << " moviesFilename prefixFilename " << '\n';
@@ -71,15 +108,60 @@ int main(int argc, char** argv){
         }
     }
 
-    vector<MovieList> moviesByPrefix;
-    for (const string& prefix : prefixes) {
-        MovieList matches = findMoviesWithPrefix(movies, prefix);
-        printMoviesForPrefix(matches, prefix);
-        moviesByPrefix.push_back(matches);
+    vector<int> prefixIndexes;
+    if (allThreeLetterPrefixes(prefixes, prefixIndexes)) {
+        array<int, PREFIX_BUCKETS> bucketSizes{};
+        vector<int> moviePrefixIndexes;
+        moviePrefixIndexes.reserve(movies.size());
+
+        for (const Movie& movie : movies) {
+            const int index = prefixIndex(movie.first);
+            moviePrefixIndexes.push_back(index);
+            if (index >= 0) {
+                ++bucketSizes[index];
+            }
+        }
+
+        array<MoviePtrList, PREFIX_BUCKETS> moviesByPrefix;
+        for (int i = 0; i < PREFIX_BUCKETS; ++i) {
+            if (bucketSizes[i] > 0) {
+                moviesByPrefix[i].reserve(bucketSizes[i]);
+            }
+        }
+
+        for (size_t i = 0; i < movies.size(); ++i) {
+            const int index = moviePrefixIndexes[i];
+            if (index >= 0) {
+                moviesByPrefix[index].push_back(&movies[i]);
+            }
+        }
+
+        for (MoviePtrList& matches : moviesByPrefix) {
+            if (!matches.empty()) {
+                sortMoviePointersByRatingThenName(matches);
+            }
+        }
+
+        for (size_t i = 0; i < prefixes.size(); ++i) {
+            printMoviesForPrefix(moviesByPrefix[prefixIndexes[i]], prefixes[i]);
+        }
+
+        for (size_t i = 0; i < prefixes.size(); ++i) {
+            printBestMovieForPrefix(moviesByPrefix[prefixIndexes[i]], prefixes[i]);
+        }
+
+        return 0;
     }
 
-    for (int i = 0; i < prefixes.size(); i++) {
-        printBestMovieForPrefix(moviesByPrefix[i], prefixes[i]);
+    vector<MovieList> prefixMatches;
+    prefixMatches.reserve(prefixes.size());
+    for (const string& prefix : prefixes) {
+        prefixMatches.push_back(findMoviesWithPrefix(movies, prefix));
+        printMoviesForPrefix(prefixMatches.back(), prefix);
+    }
+
+    for (size_t i = 0; i < prefixes.size(); i++) {
+        printBestMovieForPrefix(prefixMatches[i], prefixes[i]);
     }
 
     return 0;
@@ -117,11 +199,12 @@ int main(int argc, char** argv){
 
 
 bool parseLine(string &line, string &movieName, double &movieRating) {
-    int commaIndex = line.find_last_of(",");
-    movieName = line.substr(0, commaIndex);
-    movieRating = stod(line.substr(commaIndex+1));
-    if (movieName[0] == '\"') {
-        movieName = movieName.substr(1, movieName.length() - 2);
+    const size_t commaIndex = line.find_last_of(',');
+    movieRating = strtod(line.c_str() + commaIndex + 1, nullptr);
+    if (line[0] == '\"') {
+        movieName.assign(line.data() + 1, commaIndex - 2);
+    } else {
+        movieName.assign(line.data(), commaIndex);
     }
     return true;
 }
