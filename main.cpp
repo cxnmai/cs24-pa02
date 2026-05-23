@@ -86,7 +86,12 @@ int main(int argc, char** argv){
 }
 
 /* Add your run time analysis for part 3 of the assignment here as commented block*/
-
+// Checking whether a movie starts with the prefix can take up to O(l) time since it will compare l chars.
+// So matching movies for a prefix is O(n * l)
+// Since at most k movies match, they have to be sorted, which is O(k*log(k))
+// Multiply that by l since that's the maximum amount of letters that need to be compared
+// yielding O(k*log(k) * l)
+// Adding those and multiplying by m movies gives O(m(n*l + k*log(k)*l))
 bool parseLine(string &line, string &movieName, double &movieRating) {
     int commaIndex = line.find_last_of(",");
     movieName = line.substr(0, commaIndex);
